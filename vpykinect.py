@@ -37,7 +37,10 @@ class Skeleton:
                 # Move the joints.
                 for joint, p in zip(self.joints, skeleton.SkeletonPositions):
                     joint.pos = (p.x, p.y, p.z)
-
+#                    print('Joint number 1' + str(p)+'\n')
+#                    print('Joint 1 position' + str(joint.pos)+'\n')
+                    
+                    print(str(skeleton.SkeletonPositions[2].x))
                 # Move the bones.
                 for bone, bone_id in zip(self.bones, _bone_ids):
                     p1, p2 = [self.joints[id].pos for id in bone_id]
