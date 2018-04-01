@@ -42,13 +42,13 @@ def main(robotIP, PORT=9559):
     motionProxy.wbEnableEffectorControl("Head", isEnabled)
 
     # Motion of Arms with block process
-    effectorList = ["LArm", "RArm"] #, "Torso"]
-    axisMaskList = [motion.AXIS_MASK_VEL, motion.AXIS_MASK_VEL]#, motion.AXIS_MASK_VEL]
+    effectorList = ["LArm", "RArm", "Torso"]
+    axisMaskList = [motion.AXIS_MASK_VEL, motion.AXIS_MASK_VEL, motion.AXIS_MASK_ALL]
     elapsed = 0.5
     targetHead = 0
     
     #Scaling factor for position
-    scaling = 5.0
+    scaling = 3.0
     
     
     
@@ -81,7 +81,7 @@ def main(robotIP, PORT=9559):
                     
                     
             
-        timeList = [[0.15], [0.15]]#, [0.15]] # seconds
+        timeList = [[0.15], [0.15], [0.15]] # seconds
         
         """ For the Kinect vs the NAO, the coordinate frames are different
         
@@ -101,7 +101,7 @@ def main(robotIP, PORT=9559):
             K_Z == N_X
         """
         
-        
+        # Arm position Tracking
         dx_L = -(coordinates[7].z-initialCoordinates[7].z)/scaling
         dx_R = -(coordinates[11].z-initialCoordinates[11].z)/scaling
         
@@ -120,8 +120,13 @@ def main(robotIP, PORT=9559):
 #        print('Z-Coords R ' + str(dz_R))
 #        print('Z-Coords L ' + str(dz_L))
         
+        dx_Torso = -(coordinates[2].z-initialCoordinates[2].z)/scaling
+        dy_Torso = -(coordinates[2].x-initialCoordinates[2].x)/scaling
+        dz_Torso = (coordinates[2].y-initialCoordinates[2].y)/scaling
+        
         pathList = []
         
+        # Left arm coordinates/positions
         targetLArmTf = almath.Transform(motionProxy.getTransform("LArm", frame, useSensorValues))
         targetLArmTf.r1_c4 += dx_L
         targetLArmTf.r2_c4 += dy_L
@@ -129,7 +134,8 @@ def main(robotIP, PORT=9559):
         
         
         pathList.append(list(targetLArmTf.toVector()))
-    
+        
+        # Right arm coordinates/positions
         targetRArmTf = almath.Transform(motionProxy.getTransform("RArm", frame, useSensorValues))
         targetRArmTf.r1_c4 += dx_R
         targetRArmTf.r2_c4 += dy_R
@@ -137,14 +143,19 @@ def main(robotIP, PORT=9559):
         
         pathList.append(list(targetRArmTf.toVector()))
         
+        # Torso coordinates/positions
+        targetTorsoTf = almath.Transform(motionProxy.getTransform("Torso", frame, useSensorValues))
+        targetTorsoTf.r1_c4 += dx_Torso
+        targetTorsoTf.r2_c4 += dy_Torso
+        targetTorsoTf.r3_c4 += dz_Torso
         
-        # Head rotation
+        pathList.append(list(targetTorsoTf.toVector()))
+        
+        # Head rotation (Remove when using VR Headset)
         if coordinates[4].z - coordinates[8].z > 0.1:
-            print("Rotating Head +")
-            dRz_head = 0.1
+            dRz_head = 0.05
         elif coordinates[4].z - coordinates[8].z < -0.1:
-            print("Rotating Head -")
-            dRz_head = -0.1
+            dRz_head = -0.05
         else:
             dRz_head = 0
             
@@ -152,20 +163,17 @@ def main(robotIP, PORT=9559):
         
         headCoords = [0,0,targetHead]
         
+        # Moves the arms and torso
         motionProxy.transformInterpolations(effectorList, frame, pathList,
                                      axisMaskList, timeList)
         
+        # Rotates the head
         motionProxy.wbSetEffectorControl("Head", headCoords)
         
         elapsed = time.time() - t
         initialCoordinates = coordinates
         pathList = []
-        # time delay to prevent code from updating too fast
     
-
-    # Go to rest position
-    #motionProxy.rest()
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--ip", type=str, default="127.0.0.1",
