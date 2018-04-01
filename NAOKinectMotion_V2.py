@@ -28,7 +28,7 @@ def main(robotIP, PORT=9559):
     _kinect.camera.elevation_angle = 15
 
     # Wake up robot
-    motionProxy.wakeUp()
+    # motionProxy.wakeUp()
 
     # Send robot to Pose Init
     postureProxy.goToPosture("StandZero", 0.5)
@@ -37,14 +37,18 @@ def main(robotIP, PORT=9559):
     frame        = motion.FRAME_ROBOT
     isAbsolute   = False
     useSensorValues = False
+    isEnabled = True
+    
+    motionProxy.wbEnableEffectorControl("Head", isEnabled)
 
     # Motion of Arms with block process
-    effectorList = ["LArm", "RArm", "Head"]
-    axisMaskList = [motion.AXIS_MASK_VEL, motion.AXIS_MASK_VEL, motion.AXIS_MASK_ALL]
+    effectorList = ["LArm", "RArm"] #, "Torso"]
+    axisMaskList = [motion.AXIS_MASK_VEL, motion.AXIS_MASK_VEL]#, motion.AXIS_MASK_VEL]
     elapsed = 0.5
+    targetHead = 0
     
     #Scaling factor for position
-    scaling = 30.0
+    scaling = 5.0
     
     
     
@@ -72,15 +76,12 @@ def main(robotIP, PORT=9559):
                 if skeleton.eTrackingState == nui.SkeletonTrackingState.TRACKED:
                     coordinates = skeleton.SkeletonPositions
                     t = time.time()
-                    # print(str(skeleton.SkeletonPositions[2].x))
                     updated = True
-                #elif skeleton.eTrackingState != nui.SkeletonTrackingState.TRACKED:
-                    #postureProxy.goToPosture("StandZero", 0.5)
-                    #time.sleep(1)
+
                     
                     
             
-        timeList = [[0.15], [0.15], [0.15]] # seconds
+        timeList = [[0.15], [0.15]]#, [0.15]] # seconds
         
         """ For the Kinect vs the NAO, the coordinate frames are different
         
@@ -107,8 +108,8 @@ def main(robotIP, PORT=9559):
 #        print('X-Coords R ' + str(dx_R))
 #        print('X-Coords L ' + str(dx_L))
         
-        dy_L = (coordinates[7].x-initialCoordinates[7].x)/scaling
-        dy_R = (coordinates[11].x-initialCoordinates[11].x)/scaling
+        dy_L = -(coordinates[7].x-initialCoordinates[7].x)/scaling
+        dy_R = -(coordinates[11].x-initialCoordinates[11].x)/scaling
         
 #        print('Y-Coords R ' + str(dy_R))
 #        print('Y-Coords L ' + str(dy_L))
@@ -139,25 +140,27 @@ def main(robotIP, PORT=9559):
         
         # Head rotation
         if coordinates[4].z - coordinates[8].z > 0.1:
+            print("Rotating Head +")
             dRz_head = 0.1
         elif coordinates[4].z - coordinates[8].z < -0.1:
+            print("Rotating Head -")
             dRz_head = -0.1
         else:
             dRz_head = 0
             
-        targetHeadTf = almath.Transform(motionProxy.getTransform("Head", frame, useSensorValues))
-        targetHeadTf.r3_c4 += dRz_head
+        targetHead += dRz_head
         
-        pathList.append(list(targetHeadTf.toVector()))
+        headCoords = [0,0,targetHead]
         
         motionProxy.transformInterpolations(effectorList, frame, pathList,
                                      axisMaskList, timeList)
         
+        motionProxy.wbSetEffectorControl("Head", headCoords)
+        
         elapsed = time.time() - t
-        print(str(elapsed))
+        initialCoordinates = coordinates
         pathList = []
         # time delay to prevent code from updating too fast
-        #time.sleep(0.0167)
     
 
     # Go to rest position
@@ -167,7 +170,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--ip", type=str, default="127.0.0.1",
                         help="Robot ip address")
-    parser.add_argument("--port", type=int, default=9559,
+    parser.add_argument("--port", type=int, default=58755,
                         help="Robot port number")
 
     args = parser.parse_args()
