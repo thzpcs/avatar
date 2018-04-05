@@ -11,7 +11,7 @@ import argparse
 from naoqi import ALProxy
 
 
-#import pykinect
+import pykinect
 from pykinect import nui
 from pykinect.nui import JointId
 import time
@@ -46,9 +46,10 @@ def main(robotIP, PORT=9559):
     axisMaskList = [motion.AXIS_MASK_VEL, motion.AXIS_MASK_VEL, motion.AXIS_MASK_ALL]
     elapsed = 0.5
     targetHead = 0
+    headPos = 0
     
     #Scaling factor for position
-    scaling = 3.0
+    scaling = 2.5
     
     
     
@@ -77,6 +78,10 @@ def main(robotIP, PORT=9559):
                     coordinates = skeleton.SkeletonPositions
                     t = time.time()
                     updated = True
+                elif skeleton.eTrackingState != nui.SkeletonTrackingState.TRACKED:
+                    coordinates = initialCoordinates
+                    updated = True
+                
 
                     
                     
@@ -152,14 +157,18 @@ def main(robotIP, PORT=9559):
         pathList.append(list(targetTorsoTf.toVector()))
         
         # Head rotation (Remove when using VR Headset)
-        if coordinates[4].z - coordinates[8].z > 0.1:
-            dRz_head = 0.05
-        elif coordinates[4].z - coordinates[8].z < -0.1:
+        if coordinates[4].z - coordinates[8].z > 0.15:
+            dRz_head = 0.05            
+        elif coordinates[4].z - coordinates[8].z < -0.15:
             dRz_head = -0.05
         else:
             dRz_head = 0
-            
-        targetHead += dRz_head
+        
+#        if targetHead <= 2.3 and targetHead >= -2.3:
+#            targetHead += dRz_head
+#        else:
+#            targetHead = targetHead
+        
         
         headCoords = [0,0,targetHead]
         
@@ -178,7 +187,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--ip", type=str, default="127.0.0.1",
                         help="Robot ip address")
-    parser.add_argument("--port", type=int, default=58755,
+    parser.add_argument("--port", type=int, default=49767,
                         help="Robot port number")
 
     args = parser.parse_args()
