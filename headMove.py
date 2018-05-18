@@ -20,7 +20,8 @@ def main():
     motionProxy  = ALProxy("ALMotion", robotIP, PORT)
     postureProxy = ALProxy("ALRobotPosture", robotIP, PORT)
     
-    
+    motionProxy.rest()
+
     # Example showing how to use transformInterpolations
     frame        = motion.FRAME_ROBOT
     isAbsolute   = True
@@ -40,7 +41,7 @@ def main():
 
     while True:
         
-        content = (urllib2.urlopen('http://138.67.229.47:5000').read())
+        content = (urllib2.urlopen('http://127.0.0.1:5000').read())
         
         x,y,z = content.split(' ')
         
