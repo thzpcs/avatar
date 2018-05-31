@@ -63,8 +63,10 @@ def kinectData():
             else:
                 updated == False
                 
-    jointRotations = 
     return coordinates
+
+def armRotation(coordinates):
+    
     
         
 
@@ -75,6 +77,8 @@ def main(robotIP, PORT=9559):
         
     
     global _kinect
+    
+    # Enables the Kinect
     
     _kinect = nui.Runtime()
     _kinect.skeleton_engine.enabled = True
@@ -100,7 +104,7 @@ def main(robotIP, PORT=9559):
     postureProxy.goToPosture("StandZero", 0.5)
     raw_input("Press enter to capture initial pose")
     print("Please hold pose for 5 seconds")
-    time.sleep(10)
+    time.sleep(5)
     
     updated = False
     while updated == False:
@@ -113,6 +117,8 @@ def main(robotIP, PORT=9559):
     while True:
         
         coordinates = kinectData()
+        rotation = armRotation(coordinates)
+        
         
         currentLArm = motionProxy.getPosition("LArm", frame, useSensor)
         currentRArm = motionProxy.getPosition("RArm", frame, useSensor)
@@ -169,13 +175,15 @@ def main(robotIP, PORT=9559):
 
     
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--ip", type=str, default="169.254.129.162",
-                        help="Robot ip address")
-    parser.add_argument("--port", type=int, default=9559,
-                        help="Robot port number")
-
-    args = parser.parse_args()
-    main(args.ip, args.port)
+#    parser = argparse.ArgumentParser()
+#    parser.add_argument("--ip", type=str, default="169.254.129.162",
+#                        help="Robot ip address")
+#    parser.add_argument("--port", type=int, default=9559,
+#                        help="Robot port number")
+#
+#    args = parser.parse_args()
+    
+    robotIP = raw_input("Input robot IP: ")
+    main(robotIP)
 
     
