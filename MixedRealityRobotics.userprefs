@@ -1,0 +1,13 @@
+﻿<Properties StartupItem="MixedRealityRobotics.csproj">
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Server.cs">
+    <Files>
+      <File FileName="Assets\Server.cs" Line="13" Column="22" />
+      <File FileName="Assets\PrintDirection.cs" Line="14" Column="45" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+</Properties>
