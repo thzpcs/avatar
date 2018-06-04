@@ -6,14 +6,16 @@ Created on Wed Mar 28 20:47:49 2018
 """
 import urllib2 
 
-import socket
-import argparse
-
 import math
+
 from naoqi import ALProxy
 from naoqi import motion
 
 from pykinect import nui
+
+import os
+import win32ui
+
 
 import time
 
@@ -68,23 +70,32 @@ def kinectData():
 def armRotation(coordinates):
     
     
-    RSP = -((math.atan((coordinates[9].y - coordinates[8].y)/(coordinates[9].z - coordinates[8].z))))
-    LSP = -((math.atan((coordinates[5].y - coordinates[4].y)/(coordinates[5].z - coordinates[4].z))))
+    RSP = ((math.atan((coordinates[9].y - coordinates[8].y)/(coordinates[9].z - coordinates[8].z))))
+    LSP = ((math.atan((coordinates[5].y - coordinates[4].y)/(coordinates[5].z - coordinates[4].z))))
     
     RSR =  (math.atan(-(coordinates[9].x - coordinates[8].x)/(coordinates[9].y - coordinates[8].y)))
     LSR =  (math.atan((coordinates[5].x - coordinates[4].x)/(coordinates[5].y - coordinates[4].y)))
     
-    RER = ((math.atan((coordinates[10].y - coordinates[9].y)/(coordinates[10].z - coordinates[9].z))))
-    LER = -((math.atan((coordinates[6].y - coordinates[5].y)/(coordinates[6].z - coordinates[5].z))))
-    
-#    RSP = -(math.atan2((coordinates[9].z - coordinates[8].z), (coordinates[9].y - coordinates[8].y))) - math.pi/2
-#    LSP = -(math.atan2((coordinates[5].z - coordinates[4].z), (coordinates[5].y - coordinates[4].y))) - math.pi/2
-#    
-#    RSR =  -(math.atan2((coordinates[9].y - coordinates[8].y),(coordinates[9].x - coordinates[8].x)))
-#    LSR =  (math.atan2((coordinates[5].x - coordinates[4].x),(coordinates[5].y - coordinates[4].y)))
+    if RSP > -0.523:
+         RER = ((math.atan((coordinates[10].x - coordinates[9].x)/(coordinates[10].z - coordinates[9].z)))) 
+    elif RSP < 0 and RSP > 0.523:       
+        RER = ((math.atan((coordinates[10].x - coordinates[9].x)/(coordinates[10].y - coordinates[9].y))))
+        RER = -(RER + math.pi/2)
+    else:
+        RER = 0 
+
+    if LSP < 1.074:
+        LER = -((math.atan((coordinates[6].x - coordinates[5].x)/(coordinates[6].z - coordinates[5].z))))
+        LER = -(LER - math.pi/2)
+    elif LSP > 0 and LSP > 0.523:
+        LER = -((math.atan((coordinates[6].x - coordinates[5].x)/(coordinates[6].y - coordinates[5].y))))
+
+        LER = -(LER - math.pi/2)
 
 
-    print(LER, RER)
+    else:
+        LER = 0
+        
     
     if LSR < -0.31:
         LSR = -0.31
@@ -100,26 +111,33 @@ def armRotation(coordinates):
     else:
         RSR = RSR
     
-    if RER > 0:
+    if RER < 0:
         RER = 0
-    elif RER > 1.55:
-        RER = 1.55
+    elif RER > 1.57:
+        RER = 1.57
     else:
         RER = RER
+        
+#    if LER > 0:
+#        LER = 0
+#    elif LER < -1.57:
+#        LER = -1.57
+#    else:
+#        LER = LER
     
-#    if LSP < -1.57:
-#        LSP = -1.57
-#    elif LSP > 1.57:
-#        LSP = 1.57
-#    else:
-#        LSP = LSP
-#        
-#    if RSP < -1.57:
-#        RSP = -1.57
-#    elif RSP > 1.57:
-#        RSP = 1.57
-#    else:
-#        RSP = RSP
+    if LSP < -1.57:
+        LSP = -1.57
+    elif LSP > 1.57:
+        LSP = 1.57
+    else:
+        LSP = LSP
+        
+    if RSP < -1.57:
+        RSP = -1.57
+    elif RSP > 1.57:
+        RSP = 1.57
+    else:
+        RSP = RSP
     
     rotation = [RSP, LSP, RSR, LSR, RER, LER]
     
@@ -147,18 +165,15 @@ def main(robotIP, PORT=9559):
     frame = motion.FRAME_ROBOT
     useSensor = False
 
-
     motionProxy.wbEnable(False)
 
     fractionMaxSpeed = 0.9
     
     RArmNames = ["RShoulderPitch", "RShoulderRoll", "RElbowRoll"]
     LArmNames = ["LShoulderPitch", "LShoulderRoll", "LElbowRoll"]
-    
-    # Scaling factor for position
-    # NAO reach = 290mm, avg human = 750mm, scaling = human/NAO
-    scaling = 2.0
-    
+       
+    # Unused since the robot uses the absolute joint position now, but also
+    # allows for a bit more time to position the test subject.
     
     postureProxy.goToPosture("StandZero", 0.5)
     raw_input("Press enter to capture initial pose")
@@ -186,38 +201,20 @@ def main(robotIP, PORT=9559):
         # LArmNames = ["LShoulderPitch", "LShoulderRoll", "LElbowYaw", "LElbowRoll"]
         
         # dRSP = deltaRightShoulderPitch, dLSR = deltaLeftShoulderRoll, etc
+
         
-        currentRArm = motionProxy.getAngles("RArm", useSensor)
-        currentLArm = motionProxy.getAngles("LArm", useSensor)
-        
-        RSP = -rotation[0] #currentRArm[0] + (initialRotation[0] - rotation[0])
+        RSP = rotation[0] #currentRArm[0] + (initialRotation[0] - rotation[0])
         RSR = -rotation[2] #currentRArm[1] + (initialRotation[2] - rotation[2])
-        RER = -(rotation[4]+math.pi)
+        RER =  rotation[4]
         
-        LSP = -rotation[1]#currentLArm[0] + (initialRotation[1] - rotation[1])
+        LSP = rotation[1]#currentLArm[0] + (initialRotation[1] - rotation[1])
         LSR = rotation[3] #currentRArm[1] + (initialRotation[3] - rotation[3])
-        LER = -rotation[5]-math.pi/2
+        LER = -(rotation[5] - math.pi/2)
         
+        print(LER, RER)
         
         RArmDeltas = [RSP, RSR, RER]
         LArmDeltas = [LSP, LSR, LER]
-#        # Sets the delta arm positions        
-#        RArmTarget = [currentRArm[0] + dx_R,
-#                      currentRArm[1] + dy_R,
-#                      currentRArm[2] + dz_R,
-#                      currentRArm[3] + 0.00,
-#                      currentRArm[4] + 0.00,
-#                      currentRArm[5] + drZ_R]
-#        
-#        print(rotation)
-#                      
-#        LArmTarget = [currentLArm[0] + dx_L,
-#                      currentLArm[1] + dy_L,
-#                      currentLArm[2] + dz_L,
-#                      currentLArm[3] + 0.00,
-#                      currentLArm[4] + 0.00,
-#                      currentLArm[5] + drZ_L]
-
         
 
         # Moves the arms into position
@@ -232,26 +229,24 @@ def main(robotIP, PORT=9559):
         
         
         # Moves the arms and torso
-#        motionProxy.setPositions("LArm", frame, LArmTarget, fractionMaxSpeed, 63)
-#        motionProxy.setPositions("RArm", frame, RArmTarget, fractionMaxSpeed, 63)
 
-        initialCoordinates = coordinates
-        initialRotation = rotation
-        
+        initialCoordinates = coordinates   
 
 
-    
 if __name__ == "__main__":
-#    parser = argparse.ArgumentParser()
-#    parser.add_argument("--ip", type=str, default="169.254.129.162",
-#                        help="Robot ip address")
-#    parser.add_argument("--port", type=int, default=9559,
-#                        help="Robot port number")
-#
-#    args = parser.parse_args()
     
-    #robotIP = raw_input("Input robot IP: ")
-    robotIP = "127.0.0.1"
-    main(robotIP)
+    try:
+        win32ui.FindWindow("MixedRealityRobotics", "MixedRealityRobotics")
+    except:
+        print("Launching VR application...")
+        workingDir = str(os.path.dirname(os.getcwd()))
+        os.system("start MRR.exe " + workingDir )
+        robotIP = raw_input("Input robot IP: ")
+        robotIP = "127.0.0.1"
+        main(robotIP)
+    else:
+        robotIP = raw_input("Input robot IP: ")
+        robotIP = "127.0.0.1"
+        main(robotIP)
 
     
