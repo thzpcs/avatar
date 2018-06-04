@@ -1,6 +1,6 @@
-### Robotic Avatar Head Tracking
+#### Robotic Avatar Head Tracking and movement
 
-Written by Skyler Morris and Mark Reifsteck for Human Centered Robotics at the Colorado School of Mines
+Written by Skyler Morris
 
 
 ## Software Prerequisites
@@ -13,6 +13,8 @@ NAOqi library
 
 Unity 2017.4.1f1
 
+Kinect SDK v1.8
+
 ## Hardware Prerequisites
 
 USB 3.0 port
@@ -21,40 +23,41 @@ HDMI port
 
 Webcam
 
-Computer capable of running Windows Mixed Reality
+Microsoft Kinect v1.0 (Xbox 360 version)
 
-NAO Robot
+Computer capable of running Windows Mixed Reality 
+(See: https://docs.microsoft.com/en-us/windows/mixed-reality/enthusiast-guide/windows-mixed-reality-minimum-pc-hardware-compatibility-guidelines 
+for the Microsoft recommended specifications)
+
+NAO v4 or v5 (The software should run on a v3.3, but issues were encountered and it is not recommended)
 
 
 ## Running
 
-
 * First ensure that all required software is installed and configured including the Windows mixed reality portal first time setup. 
-* Plug in all necessary hardware and ensure that the Windows mixed reality headset and webcam are functioning properly. 
-* Open the Unity portion of the project in Unity and click the play button at the top to begin the program. 
+* Plug in all necessary hardware and ensure that the Windows mixed reality headset and webcam are functioning properly.
 * Open the Python script in the text editor of your choice. 
 * Connect and power on the NAO robot. 
+* Run “avatar.py” to start the Python script. 
 * Once done with its boot sequence, press the chest button on the NAO, and it will list its IP address
-* When the NAO says its IP address enter this into the IP into variable at the top of the Python script. 
-* Save the script. Navigate to this directory in the console and enter “python headMove.py” to start the Python script. 
-* Change the focus of your computer back to the Unity project. The NAO should now be tracking your head movement. 
+* When the NAO says its IP address enter this when requested in the Python script. A Unity window will be launched, press "OK" without changing any settings
+* Change the focus of your computer back to the Unity window. The NAO should now be tracking your head movement. 
 
 ## Built With
 
-* [Anaconda 3.6.3](https://anaconda.org/anaconda/python)- Python framework used
-* [Spyder] - IDE used, comes with Anaconda 3.6.3
+* [Anaconda 2.7](https://anaconda.org/anaconda/python)- Python framework used
+* [Spyder] - IDE used, comes with Anaconda 2.7
 * [Windows 10] - Operating system used for development
 * [Unity 2017.4.1f1] - Unity game development engine
 
 
 ## Versioning
 
-Git was used for versioning For the versions available, see https://github.com/thzpcs/MixedRealityRobotics
+Git was used for versioning For the versions available, see https://github.com/thzpcs/avatar
 
 ## Authors
 
 * **Skyler Morris** - [thzpcs](https://github.com/thzpcs)
-* **Mark Reifsteck** [mwreifsteck](https://github.com/mwreifsteck)
 
 ## License
 
@@ -62,4 +65,4 @@ This project is licensed under the MIT License
 
 ## Acknowledgments
 
-* Thank you to Dr. Hao Zhang for assistance and inspiration for this assignment
+* Thank you to Dr. Xiaoli Zhang for assistance and inspiration for this project
